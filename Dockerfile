@@ -23,6 +23,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # App code
 COPY . /app
 
+# Create writable directories for app user
+RUN mkdir -p /app/.streamlit /app/models /app/data && \
+    chmod -R 777 /app/.streamlit /app/models /app/data
+
 # HF requires port 7860 exposed for the main app (Streamlit)
 EXPOSE 7860 8000 8002
 
