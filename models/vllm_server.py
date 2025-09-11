@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class MusicLLMServer:
     """LLM server for generating music recommendation explanations."""
     
-    def __init__(self, model_path: str = "openai-community/gpt-oss-20b", 
+    def __init__(self, model_path: str = "openai/gpt-oss-20b", 
                  gpu_memory_utilization: float = 0.8, max_model_len: int = 4096):
         """Initialize the LLM server."""
         self.model_path = model_path

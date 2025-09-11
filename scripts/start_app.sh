@@ -64,7 +64,7 @@ check_service() {
 if [ -n "$CUDA_VISIBLE_DEVICES" ]; then
     echo "🧠 Starting vLLM server with GPT-OSS-20B..."
     python -m vllm.entrypoints.api_server \
-        --model openai-community/gpt-oss-20b \
+        --model openai/gpt-oss-20b \
         --host 0.0.0.0 \
         --port 8002 \
         --gpu-memory-utilization 0.8 \

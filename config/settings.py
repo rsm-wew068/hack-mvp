@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     spotify_redirect_uri: str = "http://localhost:8501/callback"
     
     # AI Models Configuration
-    vllm_model_path: str = "openai-community/gpt-oss-20b"
+    vllm_model_path: str = "openai/gpt-oss-20b"
     vllm_host: str = "localhost"
     vllm_port: int = 8002
     vllm_gpu_memory_utilization: float = 0.8

@@ -21,7 +21,7 @@ def download_gpt_oss_20b():
     """Download GPT-OSS-20B model for vLLM."""
     print("📥 Setting up GPT-OSS-20B model for vLLM...")
     
-    model_name = "openai-community/gpt-oss-20b"
+    model_name = "openai/gpt-oss-20b"
     cache_dir = f"{settings.model_storage_path}/gpt-oss-20b"
     
     try:

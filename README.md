@@ -112,7 +112,7 @@ SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
 SPOTIFY_REDIRECT_URI=http://localhost:8501/callback
 
 # AI Models Configuration
-VLLM_MODEL_PATH=openai-community/gpt-oss-20b
+VLLM_MODEL_PATH=openai/gpt-oss-20b
 VLLM_HOST=localhost
 VLLM_PORT=8002
 

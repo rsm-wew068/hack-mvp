@@ -80,7 +80,7 @@ def start_vllm_server():
     
     cmd = [
         sys.executable, "-m", "vllm.entrypoints.api_server",
-        "--model", "openai-community/gpt-oss-20b",
+        "--model", "openai/gpt-oss-20b",
         "--host", "0.0.0.0",
         "--port", "8002",
         "--gpu-memory-utilization", "0.8",

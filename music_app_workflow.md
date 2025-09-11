@@ -70,7 +70,7 @@ class Settings(BaseSettings):
     SPOTIFY_REDIRECT_URI: str = "http://localhost:8501/callback"
     
     # AI Models
-    VLLM_MODEL_PATH: str = "openai-community/gpt-oss-20b"
+    VLLM_MODEL_PATH: str = "openai/gpt-oss-20b"
     VLLM_HOST: str = "localhost"
     VLLM_PORT: int = 8002
     
@@ -94,7 +94,7 @@ from vllm.sampling_params import SamplingParams
 class MusicLLMServer:
     def __init__(self):
         self.engine_args = AsyncEngineArgs(
-            model="openai-community/gpt-oss-20b",
+            model="openai/gpt-oss-20b",
             gpu_memory_utilization=0.8,
             max_model_len=4096,
             dtype="float16"
@@ -804,7 +804,7 @@ services:
       - "8002:8002"  # vLLM server
     environment:
       - CUDA_VISIBLE_DEVICES=0
-      - VLLM_MODEL_PATH=openai-community/gpt-oss-20b
+      - VLLM_MODEL_PATH=openai/gpt-oss-20b
     volumes:
       - ./models:/app/models
       - ./data:/app/data
@@ -906,7 +906,7 @@ def download_gpt_oss_20b():
     """Download GPT-OSS-20B model"""
     print("📥 Downloading GPT-OSS-20B model...")
     
-    model_name = "openai-community/gpt-oss-20b"
+    model_name = "openai/gpt-oss-20b"
     cache_dir = "./models/gpt-oss-20b"
     
     # Download tokenizer
@@ -1243,7 +1243,7 @@ redis-server --daemonize yes
 
 echo "🧠 Starting vLLM server with GPT-OSS-20B..."
 python -m vllm.entrypoints.api_server \
-    --model openai-community/gpt-oss-20b \
+    --model openai/gpt-oss-20b \
     --host 0.0.0.0 \
     --port 8002 \
     --gpu-memory-utilization 0.8 \
