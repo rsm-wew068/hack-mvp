@@ -33,16 +33,38 @@ class RecommendationEngine:
     def _load_models(self) -> Dict[str, Any]:
         """Load or initialize neural network models."""
         try:
-            # Try to load pre-trained models
+            # Instantiate models and load state_dicts if present
+            audio_model = MusicEmbeddingNet(num_audio_features=13, embedding_dim=128)
+            cf_model = DeepCollaborativeFilter(num_users=10000, num_items=100000, embedding_dim=128)
+            bt_model = BradleyTerryModel(num_items=100000, embedding_dim=64)
+
+            audio_sd = torch.load(
+                f"{settings.model_storage_path}/audio_embedding.pth", map_location='cpu'
+            )
+            cf_sd = torch.load(
+                f"{settings.model_storage_path}/collaborative_filter.pth", map_location='cpu'
+            )
+            bt_sd = torch.load(
+                f"{settings.model_storage_path}/bradley_terry.pth", map_location='cpu'
+            )
+
+            if isinstance(audio_sd, dict):
+                audio_model.load_state_dict(audio_sd)
+            if isinstance(cf_sd, dict):
+                cf_model.load_state_dict(cf_sd)
+            if isinstance(bt_sd, dict):
+                bt_model.load_state_dict(bt_sd)
+
+            audio_model.eval()
+            cf_model.eval()
+            bt_model.eval()
+
             models = {
-                'audio_embedding': torch.load(f"{settings.model_storage_path}/audio_embedding.pth", 
-                                            map_location='cpu'),
-                'collaborative': torch.load(f"{settings.model_storage_path}/collaborative_filter.pth", 
-                                         map_location='cpu'),
-                'bradley_terry': torch.load(f"{settings.model_storage_path}/bradley_terry.pth", 
-                                          map_location='cpu')
+                'audio_embedding': audio_model,
+                'collaborative': cf_model,
+                'bradley_terry': bt_model,
             }
-            logger.info("Loaded pre-trained models")
+            logger.info("Loaded pre-trained model weights")
         except FileNotFoundError:
             # Initialize new models
             logger.info("Initializing new models")
@@ -56,7 +78,7 @@ class RecommendationEngine:
             import os
             os.makedirs(settings.model_storage_path, exist_ok=True)
             for name, model in models.items():
-                torch.save(model, f"{settings.model_storage_path}/{name}.pth")
+                torch.save(model.state_dict(), f"{settings.model_storage_path}/{name}.pth")
         
         return models
     
@@ -244,7 +266,7 @@ class RecommendationEngine:
             
             # Periodically save updated model
             if self._should_save_model():
-                torch.save(self.models['bradley_terry'], 
+                torch.save(self.models['bradley_terry'].state_dict(), 
                           f"{settings.model_storage_path}/bradley_terry.pth")
                 
         except Exception as e:
