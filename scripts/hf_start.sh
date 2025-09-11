@@ -14,15 +14,20 @@ export FRONTEND_URL="${FRONTEND_URL:-http://localhost:7860}"
 export MODEL_STORAGE_PATH="${MODEL_STORAGE_PATH:-./models}"
 export DATA_STORAGE_PATH="${DATA_STORAGE_PATH:-./data}"
 
-mkdir -p "$MODEL_STORAGE_PATH" "$DATA_STORAGE_PATH"
+mkdir -p "$MODEL_STORAGE_PATH" "$DATA_STORAGE_PATH" /app/.streamlit
+chmod -R 777 "$MODEL_STORAGE_PATH" "$DATA_STORAGE_PATH" /app/.streamlit || true
+
+# Ensure Streamlit writes under /app
+export HOME=/app
+export STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+export PYTHONPATH=/app:${PYTHONPATH:-}
 
 echo "🧠 Starting vLLM on ${VLLM_HOST}:${VLLM_PORT}..."
 python -m vllm.entrypoints.api_server \
   --model openai/gpt-oss-20b \
   --host "$VLLM_HOST" --port "$VLLM_PORT" \
   --gpu-memory-utilization 0.7 \
-  --max-model-len 2048 \
-  --enable-log-requests=false &
+  --max-model-len 2048 &
 
 echo "⚡ Starting FastAPI on :8000..."
 python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 --log-level info &
