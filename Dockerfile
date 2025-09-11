@@ -1,7 +1,7 @@
 # Hugging Face Spaces compatible Dockerfile (GPU)
 # Use HF CUDA runtime base (pullable in Spaces builders)
-# Use HF-hosted CUDA runtime image (available in Spaces builders)
-FROM ghcr.io/huggingface/cuda-runtime:12.1.1-ubuntu22.04
+# Use a plain Python base; HF GPU runners provide CUDA drivers at runtime
+FROM python:3.10-slim
 
 # Environment
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -10,9 +10,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 # System deps and Python
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 python3-pip python3-dev \
     build-essential curl git procps \
- && ln -sf /usr/bin/python3 /usr/bin/python \
+    ffmpeg libsndfile1 \
  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
