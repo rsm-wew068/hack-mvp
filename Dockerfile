@@ -1,6 +1,7 @@
 # Hugging Face Spaces compatible Dockerfile (GPU)
 # Use HF CUDA runtime base (pullable in Spaces builders)
-FROM huggingface/cuda:12.1-runtime-ubuntu22.04
+# Use HF-hosted CUDA runtime image (available in Spaces builders)
+FROM ghcr.io/huggingface/cuda-runtime:12.1.1-ubuntu22.04
 
 # Environment
 ENV DEBIAN_FRONTEND=noninteractive \
