@@ -1,10 +1,10 @@
 ---
 title: Music AI Recommender
-emoji: 🎵
+emoji: "🎵"
 colorFrom: blue
 colorTo: green
 sdk: docker
-sdk_version: ""
+sdk_version: "1"
 pinned: false
 app_port: 7860
 ---
