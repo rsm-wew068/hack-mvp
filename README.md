@@ -1,3 +1,14 @@
+---
+title: Music AI Recommender
+emoji: 🎵
+colorFrom: blue
+colorTo: green
+sdk: docker
+sdk_version: ""
+pinned: false
+app_port: 7860
+---
+
 # 🎵 AI Music Recommendation System
 
 A complete AI-powered music recommendation system that combines neural networks with GPT-OSS-20B for natural language explanations. Built with FastAPI, Streamlit, and PyTorch.
@@ -237,14 +248,3 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Spotify for the Web API
 - vLLM team for efficient LLM serving
 - PyTorch and FastAPI communities
-
-## 📞 Support
-
-For questions or issues:
-- Create an issue on GitHub
-- Check the documentation
-- Review the test cases for examples
-
----
-
-**Built with ❤️ for the OpenAI Hackathon 2025**
