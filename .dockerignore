@@ -1,0 +1,42 @@
+# VCS and env
+.git
+.gitignore
+.env
+.env.*
+.cache/
+
+# Python artifacts
+**/__pycache__/
+**/*.py[cod]
+**/*.so
+*.log
+logs/
+
+# Notebooks and colab-only assets
+*.ipynb
+colab_*.py
+COLAB_README.md
+colab_requirements.txt
+colab_setup.py
+colab_config.py
+
+# Local docker compose (not used in HF)
+docker-compose.yml
+
+# Tests and demos (not needed in Space image)
+tests/
+demo/
+
+# Data/models (let container create at runtime)
+models/*
+!models/.keep
+data/*
+!data/.keep
+
+# Scripts (only include HF launcher)
+scripts/*
+!scripts/hf_start.sh
+
+# OS junk
+.DS_Store
+Thumbs.db
