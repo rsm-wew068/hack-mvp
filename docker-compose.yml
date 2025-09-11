@@ -1,0 +1,143 @@
+version: '3.8'
+
+services:
+  # AI Backend with GPU support
+  ai-backend:
+    build:
+      context: .
+      target: backend
+    ports:
+      - "8000:8000"
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+      - VLLM_MODEL_PATH=openai-community/gpt-oss-20b
+      - DATABASE_URL=sqlite:///./data/music_app.db
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - ./models:/app/models
+      - ./data:/app/data
+      - ./logs:/app/logs
+    depends_on:
+      - redis
+      - postgres
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+
+  # vLLM Server for GPT-OSS-20B
+  vllm-server:
+    build:
+      context: .
+      target: vllm
+    ports:
+      - "8002:8002"
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+    volumes:
+      - ./models:/app/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+
+  # Streamlit Frontend
+  frontend:
+    build:
+      context: .
+      target: frontend
+    ports:
+      - "8501:8501"
+    environment:
+      - API_BASE_URL=http://ai-backend:8000
+    depends_on:
+      - ai-backend
+    restart: unless-stopped
+
+  # Redis for caching and task queue
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  # PostgreSQL for production database
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=music_ai
+      - POSTGRES_USER=music_user
+      - POSTGRES_PASSWORD=secure_password_123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./data/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  # Background task worker
+  celery-worker:
+    build:
+      context: .
+      target: backend
+    command: celery -A backend.tasks worker --loglevel=info
+    volumes:
+      - ./models:/app/models
+      - ./data:/app/data
+    depends_on:
+      - redis
+      - postgres
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://music_user:secure_password_123@postgres:5432/music_ai
+    restart: unless-stopped
+
+  # Celery Beat for scheduled tasks
+  celery-beat:
+    build:
+      context: .
+      target: backend
+    command: celery -A backend.tasks beat --loglevel=info
+    volumes:
+      - ./models:/app/models
+      - ./data:/app/data
+    depends_on:
+      - redis
+      - postgres
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://music_user:secure_password_123@postgres:5432/music_ai
+    restart: unless-stopped
+
+  # Flower for monitoring Celery tasks
+  flower:
+    build:
+      context: .
+      target: backend
+    command: celery -A backend.tasks flower --port=5555
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    name: music-ai-network

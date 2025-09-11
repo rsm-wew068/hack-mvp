@@ -1,0 +1,24 @@
+{
+  "4iV5W9uYEdYUVa79Axb7Rh": {
+    "danceability": 0.778,
+    "energy": 0.694,
+    "valence": 0.931,
+    "tempo": 113.928,
+    "acousticness": 0.000234,
+    "instrumentalness": 0.0,
+    "speechiness": 0.0457,
+    "liveness": 0.0894,
+    "loudness": -5.883
+  },
+  "3n3Ppam7vgaVa1iaRUpq9s": {
+    "danceability": 0.65,
+    "energy": 0.8,
+    "valence": 0.7,
+    "tempo": 120.0,
+    "acousticness": 0.1,
+    "instrumentalness": 0.0,
+    "speechiness": 0.05,
+    "liveness": 0.1,
+    "loudness": -6.0
+  }
+}
