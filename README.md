@@ -170,7 +170,7 @@ pytest
 # Run specific test files
 pytest tests/test_recommendations.py
 pytest tests/test_api.py
-pytest tests/test_spotify_integration.py
+pytest tests/test_elastic_integration.py
 
 # Run with coverage
 pytest --cov=. --cov-report=html
