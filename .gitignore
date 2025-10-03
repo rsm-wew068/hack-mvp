@@ -59,22 +59,22 @@ logs/
 *.sqlite
 *.sqlite3
 
-# Model files (large files)
-models/*.pth
-models/*.bin
-models/*.safetensors
-models/checkpoints/
-models/cache/
+# Audio files (rights-cleared sources)
+audio/
+clips/
+*.wav
+*.mp3
+*.flac
 
-# Data files
-data/*.db
-data/*.sqlite
-data/cache/
-data/embeddings/
-data/audio_features/
+# Model files
+models/
+*.pth
+*.bin
+*.safetensors
 
-# Spotify cache
-.spotify_cache_*
+# Google Cloud credentials
+credentials.json
+service-account.json
 
 # Jupyter Notebook
 .ipynb_checkpoints
@@ -100,9 +100,6 @@ dmypy.json
 
 # Docker
 .dockerignore
-
-# Node modules (if any)
-node_modules/
 
 # Large files that shouldn't be in git
 *.zip

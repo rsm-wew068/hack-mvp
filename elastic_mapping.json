@@ -1,0 +1,17 @@
+{
+  "mappings": {
+    "properties": {
+      "track_id": {"type": "keyword"},
+      "title": {"type": "text"},
+      "artist": {"type": "text"},
+      "bpm": {"type": "float"},
+      "key": {"type": "keyword"},
+      "openl3": {
+        "type": "dense_vector", 
+        "dims": 512, 
+        "index": true, 
+        "similarity": "cosine"
+      }
+    }
+  }
+}

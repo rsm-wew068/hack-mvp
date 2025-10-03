@@ -1,35 +1,54 @@
-# Hugging Face Spaces compatible Dockerfile (GPU)
-# Use HF CUDA runtime base (pullable in Spaces builders)
-# Use a plain Python base; HF GPU runners provide CUDA drivers at runtime
-FROM python:3.10-slim
+# Cloud Run Dockerfile for AI Music Recommendation Service
+# Elastic Challenge: AI-Powered Search with Google Cloud
 
-# Environment
-ENV DEBIAN_FRONTEND=noninteractive \
-    PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
+FROM python:3.11-slim
 
-# System deps and Python
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential curl git procps \
-    ffmpeg libsndfile1 \
- && rm -rf /var/lib/apt/lists/*
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    libsndfile1 \
+    libsndfile1-dev \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
+# Set working directory
 WORKDIR /app
 
-# Python deps first for caching
-COPY requirements.txt ./requirements.txt
+# Copy requirements first for better caching
+COPY requirements.txt .
+
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# App code
-COPY . /app
+# Install audio processing libraries
+RUN pip install --no-cache-dir \
+    openl3 \
+    essentia \
+    librosa \
+    soundfile \
+    numpy \
+    scipy \
+    scikit-learn
 
-# Create writable directories for app user
-RUN mkdir -p /app/.streamlit /app/models /app/data && \
-    chmod -R 777 /app/.streamlit /app/models /app/data
+# Copy application code
+COPY . .
 
-# HF requires port 7860 exposed for the main app (Streamlit)
-EXPOSE 7860 8000 8002
+# Create non-root user for security
+RUN useradd --create-home --shell /bin/bash appuser && \
+    chown -R appuser:appuser /app
+USER appuser
 
-# Launcher to start vLLM, FastAPI, then Streamlit on 7860
-RUN chmod +x /app/scripts/hf_start.sh
-CMD ["/bin/bash", "/app/scripts/hf_start.sh"]
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT}
+ENV PORT=8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Expose port
+EXPOSE 8080
+
+# Run the application
+CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]

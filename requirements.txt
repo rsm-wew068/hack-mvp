@@ -1,46 +1,55 @@
-# Core dependencies
-streamlit>=1.28.0
-fastapi>=0.104.0
-uvicorn[standard]>=0.24.0
-pydantic>=2.5.0
-pydantic-settings>=2.1.0
+# AI Music Recommendation System Requirements
+# Elastic Challenge: AI-Powered Search with Google Cloud
 
-# AI/ML dependencies
-torch>=2.1.0
-torchvision>=0.16.0
-torchaudio>=2.1.0
-transformers>=4.35.0
-vllm>=0.2.0
-scikit-learn>=1.3.0
-numpy>=1.24.0
-pandas>=2.1.0
+# Core web framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
 
-# Spotify integration
-spotipy>=2.23.0
+# Google Cloud services
+google-cloud-bigquery==3.13.0
+google-cloud-storage==2.10.0
+google-cloud-aiplatform==1.38.0
+google-cloud-run==0.10.0
+
+# Audio processing
+librosa==0.10.1
+soundfile==0.12.1
+essentia==2.1b6.dev1125
+openl3==0.4.1
+
+# Machine learning
+numpy==1.24.3
+scipy==1.11.4
+scikit-learn==1.3.2
+torch==2.1.0
+transformers==4.35.2
+
+# Data processing
+pandas==2.1.3
+numpy==1.24.3
+
+# HTTP and networking
+httpx==0.25.2
+aiohttp==3.9.1
+requests==2.31.0
 
 # Database and caching
-sqlalchemy>=2.0.0
-alembic>=1.13.0
-redis>=5.0.0
-celery>=5.3.0
-
-# HTTP and async
-httpx>=0.25.0
-aiohttp>=3.9.0
-requests>=2.31.0
-
-# Data visualization
-plotly>=5.17.0
-matplotlib>=3.8.0
-
-# Development and testing
-pytest>=7.4.0
-pytest-asyncio>=0.21.0
-pytest-mock>=3.12.0
-black>=23.11.0
-flake8>=6.1.0
+redis==5.0.1
+sqlalchemy==2.0.23
 
 # Utilities
-python-dotenv>=1.0.0
-rich>=13.7.0
-memory-profiler>=0.61.0
+python-multipart==0.0.6
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# Development and testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+black==23.11.0
+flake8==6.1.0
+
+# Monitoring and logging
+structlog==23.2.0
+prometheus-client==0.19.0
