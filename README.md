@@ -117,9 +117,6 @@ GOOGLE_CLOUD_PROJECT=goole-hackathon
 # Elasticsearch Configuration
 ELASTICSEARCH_URL=https://77970b949ada449794ef324f71f87529.us-central1.gcp.cloud.es.io:443
 ELASTIC_API_KEY=your-elastic-api-key
-
-# Optional: YouTube API (for enrichment)
-YOUTUBE_API_KEY=your-youtube-api-key
 ```
 
 ### Cloud Run Environment
@@ -303,13 +300,3 @@ The current implementation demonstrates all key hackathon objectives:
 - **Free Music Archive** for rights-cleared music dataset
 - **FastAPI** for modern Python web framework
 - **VS Code** for excellent development environment
-
-## 📚 Additional Documentation
-
-- [ARCHITECTURE.md](ARCHITECTURE.md) - Detailed technical design
-- [HACKATHON_SUMMARY.md](HACKATHON_SUMMARY.md) - Hackathon submission summary
-- [DEPLOYMENT_STATUS.md](DEPLOYMENT_STATUS.md) - Deployment notes
-
----
-
-**Built with ❤️ for Google Cloud x Elastic AI Accelerate Hackathon 2025**
