@@ -219,7 +219,7 @@ pytest --cov=. --cov-report=html
 
 ### **What Happens Where:**
 
-#### **Training (Optional but Nice):**
+#### **Training:**
 - **Vertex AI**: Trains a tiny ranker on user_feedback (click/skip/like)
 - **Alternative**: Start with heuristics (weights on audio similarity, BPM/key proximity, novelty)
 
@@ -230,7 +230,7 @@ pytest --cov=. --cov-report=html
    - BM25 boost on artist/genre/tags if relevant
 3. **Re-rank in Cloud Run**:
    - Combine audio_sim, BPM/key match, novelty/diversity
-   - Optional: Call Vertex AI ranker for personalization
+   - Call Vertex AI ranker for personalization
 4. **Return top-N + explanations** (tempo/key/timbre distance, novelty)
 
 ### **Cloud Run Scoring (Production-Ready):**
@@ -242,7 +242,7 @@ score = (
     - 0.10 * artist_repetition_penalty
     + novelty_bonus
 )
-# Optional: score = 0.7*score + 0.3*vertex_ranker.predict(feats)
+score = 0.7*score + 0.3*vertex_ranker.predict(feats)
 ```
 
 ### **UI "Why" Chips:**

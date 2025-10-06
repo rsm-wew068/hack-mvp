@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Music Discovery - Google Cloud x Elastic</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .search-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 20px;
+            font-size: 1.1em;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .quick-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .quick-btn {
+            padding: 12px 20px;
+            background: #f5f5f5;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95em;
+            transition: all 0.3s;
+        }
+        
+        .quick-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .search-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .search-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .results {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            display: none;
+        }
+        
+        .results.show {
+            display: block;
+        }
+        
+        .track-card {
+            background: #f9f9f9;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s;
+        }
+        
+        .track-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .track-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .track-artist {
+            font-size: 1.1em;
+            color: #666;
+            margin-bottom: 12px;
+        }
+        
+        .track-meta {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            font-size: 0.9em;
+            color: #888;
+        }
+        
+        .tag {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .error.show {
+            display: block;
+        }
+        
+        .powered-by {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 AI Music Discovery</h1>
+            <p>Google Cloud + Elastic Challenge</p>
+        </div>
+        
+        <div class="search-card">
+            <input 
+                type="text" 
+                id="searchInput" 
+                class="search-box" 
+                placeholder="Describe the music you want... (e.g., 'lo-fi beats for studying')"
+            />
+            
+            <div class="quick-buttons">
+                <button class="quick-btn" onclick="setQuery('lo-fi beats for studying')">📚 Study Music</button>
+                <button class="quick-btn" onclick="setQuery('upbeat workout music')">💪 Workout Energy</button>
+                <button class="quick-btn" onclick="setQuery('something to help me relax')">😌 Relax & Chill</button>
+                <button class="quick-btn" onclick="setQuery('party music with high energy')">🎉 Party Vibes</button>
+            </div>
+            
+            <button id="searchBtn" class="search-btn" onclick="search()">
+                🔍 Discover Music
+            </button>
+            
+            <div id="error" class="error"></div>
+        </div>
+        
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Finding your perfect tracks...</p>
+        </div>
+        
+        <div id="results" class="results"></div>
+        
+        <div class="powered-by">
+            Powered by Google Cloud BigQuery, Vertex AI, Elasticsearch & YouTube API
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:8080' 
+            : 'https://music-ai-backend-695632103465.us-central1.run.app';
+        
+        function setQuery(query) {
+            document.getElementById('searchInput').value = query;
+        }
+        
+        async function search() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) {
+                showError('Please enter a search query');
+                return;
+            }
+            
+            // UI state
+            document.getElementById('searchBtn').disabled = true;
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('error').classList.remove('show');
+            
+            try {
+                const response = await fetch(`${API_URL}/api/text-to-playlist`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: query })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                displayResults(data);
+                
+            } catch (error) {
+                console.error('Search error:', error);
+                showError(`Error: ${error.message}`);
+            } finally {
+                document.getElementById('searchBtn').disabled = false;
+                document.getElementById('loading').classList.remove('show');
+            }
+        }
+        
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            
+            if (!data.recommendations || data.recommendations.length === 0) {
+                resultsDiv.innerHTML = '<p>No tracks found. Try a different query!</p>';
+                resultsDiv.classList.add('show');
+                return;
+            }
+            
+            let html = `<h2>🎶 Found ${data.recommendations.length} Tracks</h2>`;
+            
+            if (data.understanding) {
+                html += `<div style="background: #f0f4ff; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <strong>🤖 AI Understanding:</strong> ${data.understanding}
+                </div>`;
+            }
+            
+            html += '<div style="margin-top: 20px;">';
+            
+            data.recommendations.forEach((track, index) => {
+                const score = track.score ? ` (${(track.score * 100).toFixed(1)}% match)` : '';
+                const genres = track.genres || [];
+                const bpm = track.bpm ? `${track.bpm} BPM` : '';
+                const valence = track.valence !== undefined ? `Mood: ${(track.valence * 100).toFixed(0)}%` : '';
+                
+                html += `
+                    <div class="track-card">
+                        <div class="track-title">${index + 1}. ${track.title || 'Unknown Title'}</div>
+                        <div class="track-artist">by ${track.artist || 'Unknown Artist'}</div>
+                        <div class="track-meta">
+                            ${genres.map(g => `<span class="tag">${g}</span>`).join('')}
+                            ${bpm ? `<span>${bpm}</span>` : ''}
+                            ${valence ? `<span>${valence}</span>` : ''}
+                            ${score ? `<span style="color: #667eea; font-weight: bold;">${score}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            resultsDiv.innerHTML = html;
+            resultsDiv.classList.add('show');
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+        }
+        
+        // Enter key support
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                search();
+            }
+        });
+        
+        // Test connection on load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                if (response.ok) {
+                    console.log('✅ Backend connected:', API_URL);
+                }
+            } catch (error) {
+                console.warn('⚠️ Backend not available:', error.message);
+            }
+        });
+    </script>
+</body>
+</html>

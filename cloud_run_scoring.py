@@ -3,6 +3,14 @@
 
 import numpy as np
 from typing import Dict, List, Optional
+from ai_explainer import AIExplainer
+
+# Initialize AI explainer
+try:
+    ai_explainer = AIExplainer()
+except Exception as e:
+    print(f"Warning: AI explainer initialization failed: {e}")
+    ai_explainer = None
 
 def calculate_recommendation_score(
     candidate: Dict,
@@ -161,29 +169,73 @@ def calculate_novelty_bonus(candidate: Dict, user_profile: Optional[Dict]) -> fl
     return 0.0
 
 
-def generate_explanation(track: Dict, score: float) -> str:
-    """Generate rationale chips for recommendation explanation."""
+def generate_explanation(
+    candidate: Dict,
+    seed_track: Dict,
+    score: float,
+    use_ai: bool = True
+) -> str:
+    """
+    Generate explanation for recommendation.
+
+    Args:
+        candidate: Recommended track
+        seed_track: Original seed track
+        score: Recommendation score
+        use_ai: Whether to use AI-generated explanations
+
+    Returns:
+        Natural language explanation
+    """
+    # Try AI explanation first if enabled
+    if use_ai and ai_explainer:
+        try:
+            # Prepare audio features comparison
+            audio_features = {
+                'seed_bpm': seed_track.get('bpm', 120),
+                'recommended_bpm': candidate.get('bpm', 120),
+                'seed_key': seed_track.get('key', 'Unknown'),
+                'recommended_key': candidate.get('key', 'Unknown'),
+                'seed_energy': seed_track.get('energy', 0.5),
+                'recommended_energy': candidate.get('energy', 0.5),
+                'seed_danceability': seed_track.get('danceability', 0.5),
+                'recommended_danceability': candidate.get('danceability', 0.5)
+            }
+
+            ai_explanation = ai_explainer.generate_recommendation_explanation(
+                seed_track=seed_track,
+                recommended_track=candidate,
+                similarity_score=score,
+                audio_features=audio_features
+            )
+
+            if ai_explanation:
+                return ai_explanation
+        except Exception as e:
+            print(f"AI explanation failed: {e}, falling back to template")
+
+    # Fallback: Generate rationale chips
     chips = []
-    
+
     # BPM analysis
-    if track.get('bpm'):
-        chips.append(f"{track['bpm']:.0f} BPM")
-    
+    if candidate.get('bpm'):
+        chips.append(f"{candidate['bpm']:.0f} BPM")
+
     # Key analysis
-    if track.get('key'):
-        chips.append(track['key'])
-    
+    if candidate.get('key'):
+        chips.append(candidate['key'])
+
     # Audio similarity
     if score > 0.8:
         chips.append("high audio similarity")
     elif score > 0.6:
         chips.append("moderate audio similarity")
-    
+
     # Novelty indicators
-    if "new artist" in str(track.get('metadata', {})):
+    if seed_track.get('artist') != candidate.get('artist'):
         chips.append("new artist")
-    
-    return " • ".join(chips)
+
+    return " • ".join(chips) if chips else f"{int(score * 100)}% match"
 
 
 # Example usage for Cloud Run FastAPI endpoint
@@ -214,8 +266,12 @@ def recommend_tracks(
         score = calculate_recommendation_score(
             candidate, seed_track, user_profile, vertex_ranker
         )
-        
-        explanation = generate_explanation(candidate, score)
+
+        explanation = generate_explanation(
+            candidate=candidate,
+            seed_track=seed_track,
+            score=score
+        )
         
         scored_recommendations.append({
             'track': candidate,

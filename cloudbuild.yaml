@@ -1,0 +1,5 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/goole-hackathon/music-ai-backend', '-f', 'Dockerfile.cloudrun', '.']
+images:
+  - 'gcr.io/goole-hackathon/music-ai-backend'
