@@ -10,7 +10,8 @@ python-dotenv==1.0.0
 google-cloud-bigquery==3.13.0
 google-cloud-storage==2.10.0
 # Google Cloud & AI
-google-cloud-aiplatform>=1.38.0
+google-cloud-aiplatform==1.115.0  # Pinned to avoid dependency resolution issues
+google-genai==1.2.0  # Compatible with aiplatform 1.115.0
 google-cloud-run==0.10.0
 google-api-python-client==2.108.0
 
