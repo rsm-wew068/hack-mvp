@@ -7,9 +7,6 @@ Generates natural language explanations for music recommendations
 import os
 from typing import Dict, List, Optional
 import json
-from google.cloud import aiplatform
-import vertexai
-from vertexai.generative_models import GenerativeModel, GenerationConfig
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -19,8 +16,40 @@ PROJECT_ID = os.getenv('GOOGLE_CLOUD_PROJECT', 'goole-hackathon')
 LOCATION = 'us-central1'
 MODEL_NAME = 'gemini-1.5-flash'  # Fast and efficient for explanations
 
-# Initialize Vertex AI
-vertexai.init(project=PROJECT_ID, location=LOCATION)
+# Initialize Vertex AI with multiple fallback methods
+VERTEX_AI_AVAILABLE = False
+GenerativeModel = None
+GenerationConfig = None
+
+try:
+    # Method 1: Try standard import (works in most environments)
+    import vertexai
+    from vertexai.generative_models import (
+        GenerativeModel as GM,
+        GenerationConfig as GC
+    )
+    vertexai.init(project=PROJECT_ID, location=LOCATION)
+    GenerativeModel = GM
+    GenerationConfig = GC
+    VERTEX_AI_AVAILABLE = True
+    print("✅ Vertex AI Gemini initialized (standard SDK)")
+except Exception as e1:
+    try:
+        # Method 2: Try preview SDK
+        import vertexai
+        from vertexai.preview.generative_models import (
+            GenerativeModel as GM,
+            GenerationConfig as GC
+        )
+        vertexai.init(project=PROJECT_ID, location=LOCATION)
+        GenerativeModel = GM
+        GenerationConfig = GC
+        VERTEX_AI_AVAILABLE = True
+        print("✅ Vertex AI Gemini initialized (preview SDK)")
+    except Exception as e2:
+        print(f"⚠️  Vertex AI Gemini unavailable: {e1}")
+        print(f"    Preview SDK also failed: {e2}")
+        print("    Using template-based explanations")
 
 
 class AIExplainer:
@@ -28,13 +57,24 @@ class AIExplainer:
     
     def __init__(self):
         """Initialize the Gemini model"""
-        self.model = GenerativeModel(MODEL_NAME)
-        self.generation_config = GenerationConfig(
-            temperature=0.7,  # Creative but consistent
-            top_p=0.9,
-            top_k=40,
-            max_output_tokens=150,  # Short, concise explanations
-        )
+        self.available = False
+        
+        if VERTEX_AI_AVAILABLE and GenerativeModel and GenerationConfig:
+            try:
+                self.model = GenerativeModel(MODEL_NAME)
+                self.generation_config = GenerationConfig(
+                    temperature=0.7,
+                    top_p=0.9,
+                    top_k=40,
+                    max_output_tokens=150,
+                )
+                self.available = True
+                print(f"✅ AIExplainer initialized with {MODEL_NAME}")
+            except Exception as e:
+                print(f"⚠️  Failed to initialize Gemini model: {e}")
+                self.available = False
+        else:
+            print("ℹ️  AIExplainer using template-based explanations")
     
     def generate_recommendation_explanation(
         self,
@@ -73,6 +113,11 @@ Examples: "🔥 This has the same chill vibe!" or "Perfect match - same energy a
 Keep it under 100 characters."""
 
         try:
+            if not self.available:
+                return self._fallback_explanation(
+                    seed_track, recommended_track, similarity_score, audio_features
+                )
+            
             response = self.model.generate_content(
                 prompt,
                 generation_config=self.generation_config

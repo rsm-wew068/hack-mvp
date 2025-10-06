@@ -9,7 +9,8 @@ python-dotenv==1.0.0
 # Google Cloud services
 google-cloud-bigquery==3.13.0
 google-cloud-storage==2.10.0
-google-cloud-aiplatform==1.38.0
+# Google Cloud & AI
+google-cloud-aiplatform>=1.38.0
 google-cloud-run==0.10.0
 google-api-python-client==2.108.0
 
