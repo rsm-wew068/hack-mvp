@@ -319,19 +319,24 @@
             
             html += '<div style="margin-top: 20px;">';
             
-            data.recommendations.forEach((track, index) => {
-                const score = track.score ? ` (${(track.score * 100).toFixed(1)}% match)` : '';
+            data.recommendations.forEach((item, index) => {
+                const track = item.track || item;
+                const score = item.score ? ` (${(item.score * 100).toFixed(1)}% match)` : '';
+                const explanation = item.explanation || '';
                 const genres = track.genres || [];
                 const bpm = track.bpm ? `${track.bpm} BPM` : '';
+                const key = track.key || '';
                 const valence = track.valence !== undefined ? `Mood: ${(track.valence * 100).toFixed(0)}%` : '';
                 
                 html += `
                     <div class="track-card">
                         <div class="track-title">${index + 1}. ${track.title || 'Unknown Title'}</div>
                         <div class="track-artist">by ${track.artist || 'Unknown Artist'}</div>
+                        ${explanation ? `<div style="color: #666; font-size: 0.9em; margin: 5px 0;">${explanation}</div>` : ''}
                         <div class="track-meta">
                             ${genres.map(g => `<span class="tag">${g}</span>`).join('')}
                             ${bpm ? `<span>${bpm}</span>` : ''}
+                            ${key ? `<span>${key}</span>` : ''}
                             ${valence ? `<span>${valence}</span>` : ''}
                             ${score ? `<span style="color: #667eea; font-weight: bold;">${score}</span>` : ''}
                         </div>
