@@ -14,6 +14,7 @@ from cloud_run_scoring import recommend_tracks, calculate_recommendation_score
 from youtube_integration import YouTubeClient, enrich_track_with_youtube
 from rlhf_reranker import RLHFReranker
 from conversational_search import understand_query, enhance_search_params
+from ai_explainer import get_explainer, generate_explanation, generate_playlist_explanation
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -33,6 +34,7 @@ bigquery_client = None
 elastic_client = None
 youtube_client = None
 rlhf_reranker = None
+ai_explainer = None
 
 @app.on_event("startup")
 async def startup_event():
@@ -87,6 +89,14 @@ async def startup_event():
     except Exception as e:
         print(f"⚠️  RLHF initialization failed: {e}")
         rlhf_reranker = None
+    
+    # Initialize AI Explainer (Vertex AI Gemini)
+    try:
+        ai_explainer = get_explainer()
+        print("✅ AI Explainer (Vertex AI Gemini) initialized")
+    except Exception as e:
+        print(f"⚠️  AI Explainer initialization failed: {e}")
+        ai_explainer = None
 
 
 # Root endpoint - serve the frontend
@@ -119,9 +129,10 @@ class Recommendation(BaseModel):
 
 class RecommendationResponse(BaseModel):
     recommendations: List[Recommendation]
-    query: Optional[str] = None
-    seed_track_id: Optional[str] = None
+    query: Optional[str]
+    seed_track_id: Optional[str]
     total_candidates: int
+    explanation: Optional[str] = None  # AI-generated playlist explanation
 
 # Health check endpoint
 @app.get("/health")
@@ -167,6 +178,31 @@ async def get_recommendations(request: RecommendationRequest):
         
         # Take top_k after reranking
         recommendations = recommendations[:request.top_k]
+        
+        # 🆕 Generate AI explanations for each recommendation using Vertex AI Gemini
+        if ai_explainer and seed_track:
+            for rec in recommendations:
+                track = rec.get('track', {})
+                try:
+                    # Generate AI explanation using Vertex AI
+                    audio_features = {
+                        'bpm_diff': abs(track.get('bpm', 120) - seed_track.get('bpm', 120)),
+                        'key_match': 'same' if track.get('key') == seed_track.get('key') else 'different',
+                        'genre': track.get('genre', 'Unknown')
+                    }
+                    
+                    explanation = generate_explanation(
+                        seed_track=seed_track,
+                        recommended_track=track,
+                        similarity_score=rec.get('score', 0.0),
+                        audio_features=audio_features
+                    )
+                    
+                    rec['explanation'] = explanation
+                    logger.info(f"✨ AI Explanation: {explanation}")
+                except Exception as e:
+                    logger.warning(f"⚠️  Failed to generate explanation: {e}")
+                    rec['explanation'] = f"{rec.get('score', 0):.0%} match"
         
         # Enrich with YouTube metadata
         if youtube_client and youtube_client.youtube:
@@ -219,7 +255,24 @@ async def text_to_playlist(request: RecommendationRequest):
     )
     
     # Get recommendations with enhanced query
-    return await get_recommendations(enhanced_request)
+    response = await get_recommendations(enhanced_request)
+    
+    # 🆕 Add AI-powered playlist explanation using Vertex AI Gemini
+    if ai_explainer and response.recommendations:
+        try:
+            tracks = [rec.get('track', {}) for rec in response.recommendations]
+            playlist_explanation = generate_playlist_explanation(
+                query=request.query,
+                tracks=tracks,
+                mood=understood.get('mood')
+            )
+            # Add to metadata or first track explanation
+            logger.info(f"🎵 Playlist Explanation: {playlist_explanation}")
+            response.explanation = playlist_explanation  # Add to response if model supports
+        except Exception as e:
+            logger.warning(f"⚠️  Failed to generate playlist explanation: {e}")
+    
+    return response
 
 # User feedback endpoint
 @app.post("/api/feedback")
